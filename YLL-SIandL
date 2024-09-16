@@ -1,0 +1,529 @@
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 1))/predict(surv timevar(t`i') at(si_lone1 1))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond		
+save "D:\DATA\UKB\Lone\all1-0.dta", replace
+
+/// 0 VS 2
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 2))/predict(surv timevar(t`i') at(si_lone1 2))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond
+save "D:\DATA\UKB\Lone\all2-0.dta", replace		
+/// 0 VS 3
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 3))/predict(surv timevar(t`i') at(si_lone1 3))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond
+save "D:\DATA\UKB\Lone\all3-0.dta", replace
+
+*** Q1的比较***
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI if quart==1, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 1))/predict(surv timevar(t`i') at(si_lone1 1))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond		
+save "D:\DATA\UKB\Lone\Q11-0.dta", replace
+/// 0 VS 2
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI if quart==1, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 2))/predict(surv timevar(t`i') at(si_lone1 2))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond
+save "D:\DATA\UKB\Lone\Q12-0.dta", replace		
+/// 0 VS 3
+* drink 0 Current 1 Previous 2 Never
+* sm 0 Current 1 Previous 2 Never
+cd "D:\DATA\UKB\Lone"
+clear	
+ import delimited "D:\DATA\UKB\Lone\beh5.csv"
+ drop if age<40
+ replace gender="1" if gender=="Male"
+ replace gender="0" if gender=="Female"
+ destring gender, force replace
+ destring nethnic nedu ctdi, force replace
+ generate srh=""
+ replace srh="0" if p2178_i0=="Poor"
+ replace srh="1" if p2178_i0=="Good"
+ replace srh="2" if p2178_i0=="Fair"
+ replace srh="3" if p2178_i0=="Excellent"
+ destring srh, force replace
+ generate adl=""
+ replace adl="1" if p2188_i0=="Yes"
+ replace adl="0" if p2188_i0=="No"
+ replace adl="0" if p2188_i0=="Do not know"
+ destring adl, force replace
+ 
+ destring p21001_i0,force replace
+  generate cBMI=.
+ replace cBMI=0 if p21001_i0<18.5
+ replace cBMI=1 if p21001_i0>=18.5 & p21001_i0<25
+ replace cBMI=2 if p21001_i0>=25 & p21001_i0<30
+ replace cBMI=3 if p21001_i0>=30
+ 
+ generate lone=""
+ replace lone="1" if p2020_i0=="Yes"
+ replace lone="0" if p2020_i0=="No"
+ destring lone si,force replace
+ generate si_lone1=.
+ replace si_lone1=0 if si<=1 & lone==0
+ replace si_lone1=1 if si<=1 & lone==1
+ replace si_lone1=2 if si>=2 & lone==0
+ replace si_lone1=3 if si>=2 & lone==1
+ 
+ destring hlst, force replace
+  
+ 
+ drop if si_lone1==.
+ drop if gender==.
+ drop if nethnic==.
+ drop if nedu==.
+ drop if ctdi==.
+ drop if srh==.
+ drop if adl==.
+ drop if cBMI==.
+ drop if hlst==.
+  xtile quart =hlst, nq(3)
+
+
+ stset age1, failure(dead==1) enter(age)
+ stpm2 i.si_lone1 gender nethnic nedu ctdi srh adl cBMI if quart==1, df(4) scale(hazard)  eform nolog
+ 
+ preserve
+ clear
+ tempfile results1
+ save `results1', emptyok replace
+ restore
+ foreach i of num 40(1)100{
+ 	preserve
+	gen t`i'=`i' in 1/100
+	range tt`i' `i' 100 100
+	predictnl mm`i'=[predict(surv timevar(tt`i') at (si_lone1 0))/predict(surv timevar(t`i') at(si_lone1 0))]-[predict(surv timevar(tt`i') at (si_lone1 3))/predict(surv timevar(t`i') at(si_lone1 3))], ci(lci`i' uci`i') level(95)
+	integ mm`i' tt`i'
+	scalar area_mm`i'=r(integral)
+	integ lci`i' tt`i'
+	scalar area_lci`i'=r(integral)
+	integ uci`i' tt`i'
+	scalar area_uci`i'=r(integral)
+	clear
+	set obs 1
+	gen cond=`i'
+	gen yll_mm=area_mm`i'
+	gen yll_lci=area_lci`i'
+	gen yll_uci=area_uci`i'
+	append using `results1'
+	save `results1',replace
+	restore
+ }
+use `results1',clear
+sort cond
+line yll_mm yll_lci yll_uci cond
+save "D:\DATA\UKB\Lone\Q13-0.dta", replace
